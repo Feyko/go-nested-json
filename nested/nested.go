@@ -1,25 +1,39 @@
 package nested
 
 import (
+	"encoding/json"
+	"fmt"
+	"nested-json/internal/tags"
 	"reflect"
-	"strings"
 )
 
-type unmarshaller struct {
+func Marshal(v any) ([]byte, error) {
+	marshaler := NewMarshaler(v)
+	return marshaler.MarshalJSON()
 }
 
-func Marshal(v any) ([]byte, error) {
-	tags, _ := getTags(v)
+func NewMarshaler(v any) Marshaler {
+	return Marshaler{input: v}
+}
+
+type Marshaler struct {
+	input    any
+	reshaped map[string]any
+	tags     map[string]tags.TagInfo
+}
+
+func (m Marshaler) MarshalJSON() ([]byte, error) {
+	if !isStruct(m.input) {
+		return json.Marshal(m.input)
+	}
+	structTags, err := tags.GetTags(m.input)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse the struct tags: %v", err)
+	}
+	m.tags = structTags
 	return nil, nil
 }
 
-func getTags(v any) (map[string][]string, error) {
-	r := make(map[string][]string)
-	vType := reflect.TypeOf(v)
-	for i := 0; i < vType.NumField(); i++ {
-		field := vType.Field(i)
-		fieldTag := field.Tag.Get("nested")
-		r[field.Name] = strings.Split(fieldTag, ",")
-	}
-	return r, nil
+func isStruct(v any) bool {
+	return reflect.TypeOf(v).Kind() == reflect.Struct
 }
