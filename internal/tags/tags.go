@@ -6,8 +6,8 @@ import (
 )
 
 type TagInfo struct {
-	path      []string
-	omitempty bool
+	Path      []string
+	OmitEmpty bool
 }
 
 func GetTags(v any) (map[string]TagInfo, error) {
@@ -23,11 +23,12 @@ func GetTags(v any) (map[string]TagInfo, error) {
 
 func parseTag(tag string) (r TagInfo) {
 	parts := strings.Split(tag, ",")
-	r.path, r.omitempty = chopOmitempty(parts)
+	r.Path, r.OmitEmpty = chopOmitempty(parts)
 	return
 }
 
 func chopOmitempty(tagParts []string) (chopped []string, omitempty bool) {
+	chopped = tagParts
 	if len(tagParts) == 0 {
 		return tagParts, false
 	}
