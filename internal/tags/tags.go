@@ -10,11 +10,13 @@ type TagInfo struct {
 	OmitEmpty bool
 }
 
-func GetTags(v any) (map[string]TagInfo, error) {
+func GetTags(v reflect.Type) (map[string]TagInfo, error) {
 	r := make(map[string]TagInfo)
-	vType := reflect.TypeOf(v)
-	for i := 0; i < vType.NumField(); i++ {
-		field := vType.Field(i)
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		if !isValidField(field) {
+			continue
+		}
 		fieldTag := field.Tag.Get("nested")
 		r[field.Name] = parseTag(fieldTag)
 	}
@@ -37,4 +39,8 @@ func chopOmitempty(tagParts []string) (chopped []string, omitempty bool) {
 		chopped = tagParts[:len(tagParts)-1]
 	}
 	return
+}
+
+func isValidField(field reflect.StructField) bool {
+	return field.IsExported()
 }
